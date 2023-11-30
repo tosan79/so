@@ -44,7 +44,28 @@ static void filter(pipe_t in, pipe_t out, long prime) {
 static noreturn void filter_chain(pipe_t in) {
   long prime;
 
-  /* TODO: Something is missing here! */
+  while (ReadNum(in, &prime)) {
+    //printf("%ld ", prime); 
+    //Write(STDOUT_FILENO, &prime, sizeof(long));
+
+  //while (1) {
+    pipe_t next = MakePipe();
+    
+    if (Fork()) { /* parent */
+	Write(STDOUT_FILENO, &prime, sizeof(long));
+      	CloseWriteEnd(in);
+      	filter(in, next, prime);
+      	//Wait(NULL);
+    } else { /* child */
+      CloseReadEnd(next);
+      while (Read(next.read, &prime, sizeof(long) > 0)) {
+        //WriteNum(next, prime);
+      };
+    }
+
+    //in = next;
+
+  }
 
   exit(EXIT_SUCCESS);
 }
@@ -79,3 +100,4 @@ int main(int argc, char *argv[]) {
 
   return 0;
 }
+
