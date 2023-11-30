@@ -1,4 +1,4 @@
-PROGS = listdir mergesort prime
+PROGS = listdir prime mergesort
 EXTRA-FILES = gen-nums.py
 
 include Makefile.include

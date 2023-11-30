@@ -1,4 +1,4 @@
-CC = /opt/homebrew/bin/gcc-12 -g
+CC = gcc -g
 CFLAGS = -Og -Wall -Werror -Wstrict-prototypes
 AS = as -g
 ASFLAGS = 

@@ -33,6 +33,10 @@ static void print_mode(mode_t m) {
   char ox = (m & S_IXOTH) ? 'x' : '-';
 
   /* TODO: Fix code to report set-uid/set-gid/sticky bit as 'ls' does. */
+  
+  ux = (m & S_ISUID) ? 's' : ux;
+  gx = (m & S_ISGID) ? 's' : gx;
+  ox = (m & S_ISVTX) ? 't' : ox;
 
   printf("%c%c%c%c%c%c%c%c%c%c", t, ur, uw, ux, gr, gw, gx, or, ow, ox);
 }
@@ -57,13 +61,17 @@ static void file_info(int dirfd, const char *name) {
   struct stat sb[1];
 
   /* TODO: Read file metadata. */
-
+  fstatat(dirfd, name, sb, AT_SYMLINK_NOFOLLOW);
   print_mode(sb->st_mode);
   printf("%4ld", sb->st_nlink);
   print_uid(sb->st_uid);
   print_gid(sb->st_gid);
 
   /* TODO: For devices: print major/minor pair; for other files: size. */
+  if (S_ISCHR(sb->st_mode) || S_ISBLK(sb->st_mode))
+	  printf("[%x, %x]", major(sb->st_dev), minor(sb->st_dev));
+  else
+	  printf("%6ld", sb->st_size);
 
   char *now = ctime(&sb->st_mtime);
   now[strlen(now) - 1] = '\0';
@@ -73,6 +81,11 @@ static void file_info(int dirfd, const char *name) {
 
   if (S_ISLNK(sb->st_mode)) {
   /* TODO: Read where symlink points to and print '-> destination' string. */
+	  size_t bufsize = sb->st_size + 1;
+	  char *buf = malloc(bufsize);
+	  ssize_t n = readlinkat(dirfd, name, buf, bufsize);
+	  if (n > -1)
+		  printf(" -> %.*s", (int)n, buf);
   }
 
   putchar('\n');
@@ -89,6 +102,12 @@ int main(int argc, char *argv[]) {
   while ((n = Getdents(dirfd, (void *)buf, DIRBUFSZ))) {
     struct linux_dirent *d;
     /* TODO: Iterate over directory entries and call file_info on them. */
+    long buf_pos = 0;
+    while (buf_pos < n) {
+    	d = (struct linux_dirent *)(buf + buf_pos);
+	file_info(dirfd, d->d_name);
+	buf_pos += d->d_reclen;
+    }
   }
 
   Close(dirfd);
