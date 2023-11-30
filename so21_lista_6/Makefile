@@ -1,4 +1,4 @@
-PROGS = id writeperf
+PROGS = writeperf id
 EXTRA-FILES = writeperf.sh
 
 include Makefile.include

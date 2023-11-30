@@ -1,19 +1,25 @@
 #include "csapp.h"
 
 static const char *uidname(uid_t uid) {
-  /* TODO: Something is missing here! */
+	struct passwd *pwd = getpwuid(uid);
+	return pwd->pw_name;
 }
 
 static const char *gidname(gid_t gid) {
-  /* TODO: Something is missing here! */
+	struct group *grp = getgrgid(gid);
+	return grp->gr_name;
 }
 
 static int getid(uid_t *uid_p, gid_t *gid_p, gid_t **gids_p) {
   gid_t *gids = NULL;
   int ngid = 2;
   int groups;
-
-  /* TODO: Something is missing here! */
+  
+  *uid_p = getuid();
+  *gid_p = getgid();
+  groups = getgroups(0, gids);
+  gids = realloc(gids, groups * sizeof(gid_t));
+  getgroups(groups, gids);
 
   *gids_p = gids;
   return groups;
